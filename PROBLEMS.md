@@ -222,6 +222,134 @@ TEST02: AVG Xms (cpu omp+tiled) vs AVG Yms (gpu tiled, 10 runs)
 
 ---
 
+---
+
+## Section B — Additional Skills (from EXERCISE.md)
+
+---
+
+### P11 — std::thread Vector Addition
+
+**File:** `11_thread_vecadd.cpp`
+**Difficulty:** Easy
+**Dimension:** N = 2²⁴ (16 M) floats
+
+Add two float arrays element-wise on the CPU using `std::thread`.
+The serial version is provided. Divide the array into NTHREADS equal chunks; launch one thread per chunk; join all threads.
+
+**What to implement:** `vecadd_threads(float* a, float* b, float* c, int n)` function.
+**Key concept:** `std::thread`, work partitioning, `join`.
+
+**Tests:**
+```
+TEST01: Correctness — result matches serial addition element-wise
+TEST02: AVG Xms (serial) vs AVG Yms (std::thread, 10 runs)
+```
+
+---
+
+### P12 — NEON Vector Addition
+
+**File:** `12_neon_vecadd.cpp`
+**Difficulty:** Easy
+**Dimension:** N = 2²⁴ (16 M) floats
+
+Add two float arrays element-wise using ARM NEON SIMD.
+The serial version is provided. Use `vld1q_f32`, `vaddq_f32`, `vst1q_f32` to process 4 floats per cycle; handle the tail scalar.
+
+**What to implement:** `vecadd_neon(float* a, float* b, float* c, int n)` function.
+**Key concept:** NEON store (`vst1q_f32`), 4-wide SIMD addition, scalar tail.
+
+**Tests:**
+```
+TEST01: Correctness — result matches serial addition element-wise
+TEST02: AVG Xms (serial) vs AVG Yms (neon, 10 runs)
+```
+
+---
+
+### P13 — Thread-Safe Hashtable
+
+**File:** `13_hashtable.cpp`
+**Difficulty:** Hard
+**Dimension:** 1M inserts, 8 threads, 1024 buckets (separate chaining)
+
+Implement three locking strategies for a hash table with separate chaining.
+The struct and helper methods are provided. Fill in the three insert functions.
+
+**What to implement:** `insert_coarse`, `insert_fine`, `insert_strip` in `HashTable`.
+**Key concept:** mutex granularity — global lock vs per-bucket lock vs lock striping.
+
+**Tests:**
+```
+TEST01: Correctness — single-threaded insert produces expected size for all three methods
+TEST02: AVG Xms (coarse) vs AVG Yms (fine) vs AVG Zms (strip, 10 runs concurrent)
+```
+
+---
+
+### P14 — OpenMP Direct 2D Convolution
+
+**File:** `14_omp_conv.cpp`
+**Difficulty:** Medium
+**Dimension:** 2048 × 2048 image, 3 × 3 kernel
+
+Apply a 2D convolution (valid padding) to an image using OpenMP.
+The serial four-nested-loop version is provided. Parallelize the outer pixel loops.
+
+**What to implement:** `conv_omp(float* img, float* ker, float* out)` function.
+**Key concept:** `#pragma omp parallel for collapse(2)`, embarrassingly parallel over output pixels.
+
+**Tests:**
+```
+TEST01: Correctness — output matches serial convolution within 1e-4
+TEST02: AVG Xms (serial) vs AVG Yms (omp, 10 runs)
+```
+
+---
+
+### P15 — CUDA Unified Memory
+
+**File:** `15_cuda_unified.cu`
+**Difficulty:** Medium
+**Dimension:** N = 2²⁴ (16 M) floats
+
+Perform an element-wise scale (×2) using unified memory instead of explicit `cudaMemcpy`.
+The explicit approach (cudaMalloc + cudaMemcpy + kernel + copy back) is provided.
+Rewrite it with `cudaMallocManaged` and optional prefetch.
+
+**What to implement:** `run_unified(float* h_in, float* h_out, int n)` function.
+**Key concept:** `cudaMallocManaged`, `cudaMemPrefetchAsync`, programming model tradeoffs.
+
+**Tests:**
+```
+TEST01: Correctness — unified result matches explicit approach element-wise
+TEST02: AVG Xms (explicit) vs AVG Yms (unified, 10 runs, incl. transfers)
+```
+
+---
+
+### P16 — CUDA Stream Pipeline
+
+**File:** `16_cuda_stream.cu`
+**Difficulty:** Hard
+**Dimension:** N = 2²⁴ floats in 8 chunks
+
+Overlap H2D transfer, compute, and D2H transfer across two CUDA streams.
+The sequential single-stream approach (H2D → kernel → D2H per chunk, blocking) is provided.
+Implement the two-stream ping-pong pipeline using `cudaMemcpyAsync`.
+
+**What to implement:** `run_streamed(...)` function.
+**Key concept:** `cudaStream_t`, `cudaMemcpyAsync`, `cudaMallocHost` (pinned), pipeline overlap.
+
+**Tests:**
+```
+TEST01: Correctness — streamed output matches sequential output element-wise
+TEST02: AVG Xms (sequential) vs AVG Yms (streamed, 10 runs)
+```
+
+---
+
 ## Summary
 
 | ID | File | Section | Topic | Difficulty |
@@ -236,3 +364,9 @@ TEST02: AVG Xms (cpu omp+tiled) vs AVG Yms (gpu tiled, 10 runs)
 | P08 | `08_cuda_reduction.cu` | A | Full CUDA reduction pipeline | Hard |
 | P09 | `09_cuda_prefix_sum.cu` | A | Blelloch prefix scan | Hard |
 | P10 | `10_hybrid_matmul.cu` | A | Hybrid CPU+GPU matmul | Hard |
+| P11 | `11_thread_vecadd.cpp` | B | std::thread vector addition | Easy |
+| P12 | `12_neon_vecadd.cpp` | B | NEON vector addition | Easy |
+| P13 | `13_hashtable.cpp` | B | Thread-safe hashtable | Hard |
+| P14 | `14_omp_conv.cpp` | B | OpenMP direct convolution | Medium |
+| P15 | `15_cuda_unified.cu` | B | CUDA unified memory | Medium |
+| P16 | `16_cuda_stream.cu` | B | CUDA stream pipeline | Hard |
