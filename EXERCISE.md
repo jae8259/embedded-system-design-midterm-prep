@@ -25,26 +25,12 @@ int reduce(float *numbers, int length){
 
 # Matrix Multiplication
 ## CPU
-- [ ] kij order with mutex
 - [ ] Cache way conflict > solve this by padding
-- [ ] Use `vaddq_u32`
 - [ ] Use various openmp
 
 # Convolution
-A single convolution layer with various specs.
-Want to parallelize in many dimensions.
-- [ ] Depthwise convolution (Give a hint for this)
 - [ ] Other fun specialized kernels?
-- [ ] im2col + matmul
 
 # Pooling
 
 # FC Layer
-
-# Misc
-Think of a meaningful example on this.
-- [ ] OMP critical
-- [ ] OMP private family
-- [ ] OMP hardware thread
-- [ ] OMP Master
-- [ ] OMP reduction

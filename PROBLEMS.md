@@ -350,6 +350,113 @@ TEST02: AVG Xms (sequential) vs AVG Yms (streamed, 10 runs)
 
 ---
 
+---
+
+## Section D — Combinations & Synthesis
+
+---
+
+### P17 — im2col + GEMM Convolution
+
+**File:** `17_im2col_gemm.cpp`
+**Difficulty:** Hard
+**Dimension:** H=W=64, C=8, C_out=16, K=3
+
+Transform a convolution into a matrix multiply via the im2col reshape.
+The direct convolution and a `gemm` helper are provided. Implement `im2col` that unpacks input patches into a `[C*K*K][OH*OW]` column matrix; `conv_im2col` calls it then calls `gemm`.
+
+**What to implement:** `im2col(float* input, float* col_buf)` function.
+**Key concept:** im2col layout, patch extraction, convolution-as-GEMM.
+
+**Tests:**
+```
+TEST01: Correctness — im2col+gemm matches direct conv within 1e-3
+TEST02: AVG Xms (direct) vs AVG Yms (im2col+gemm, 10 runs)
+```
+
+---
+
+### P18 — NEON Matrix Multiply
+
+**File:** `18_neon_matmul.cpp`
+**Difficulty:** Hard
+**Dimension:** M=K=N=512
+
+Multiply two square matrices using ARM NEON `vmlaq_f32` for 4-wide FMA.
+A kij-ordered serial matmul is provided. Implement the NEON version with the same loop order: broadcast `A[i][k]` with `vdupq_n_f32`, accumulate into `C[i][j..j+3]` with `vmlaq_f32`.
+
+**What to implement:** `matmul_neon(float* A, float* B, float* C, int m, int k, int n)` function.
+**Key concept:** `vdupq_n_f32`, `vmlaq_f32`, `vld1q_f32`/`vst1q_f32`, kij SIMD.
+
+**Tests:**
+```
+TEST01: Correctness — NEON result matches serial within 1e-2
+TEST02: AVG Xms (serial) vs AVG Yms (neon, 10 runs)
+```
+
+---
+
+### P19 — kij Loop-Order + Threaded Matmul
+
+**File:** `19_kij_matmul.cpp`
+**Difficulty:** Medium
+**Dimension:** M=K=N=512, 8 threads
+
+Two TODOs in one problem. First: reorder ijk → kij for cache-friendly B access. Second: parallelize with `std::thread` by partitioning the i-loop (row ranges) — unlike partitioning k which causes write races on C.
+
+**What to implement:** `matmul_kij` (loop reorder) and `matmul_kij_thread` (std::thread, i-partition).
+**Key concept:** loop order → cache behavior; safe thread partitioning without mutex.
+
+**Tests:**
+```
+TEST01: kij SUCCESS + kij+thread SUCCESS (both match ijk within 1e-2)
+TEST02: AVG Xms (ijk) vs AVG Yms (kij) vs AVG Zms (kij+thread, 10 runs)
+```
+
+---
+
+### P20 — Depthwise Convolution
+
+**File:** `20_dwconv.cpp`
+**Difficulty:** Medium
+**Dimension:** C=64, H=W=128, K=3
+
+Parallelize a depthwise convolution with OpenMP. Unlike standard conv, each output channel c depends only on input channel c — channels are fully independent, making parallelization trivial.
+
+**What to implement:** `dwconv_omp(float* input, float* kernels, float* output)` function.
+**Key concept:** depthwise conv structure, channel independence, `#pragma omp parallel for`.
+
+**Tests:**
+```
+TEST01: Correctness — omp result matches serial within 1e-4
+TEST02: AVG Xms (serial) vs AVG Yms (omp, 10 runs)
+```
+
+---
+
+### P21 — OpenMP Misc Constructs
+
+**File:** `21_omp_misc.cpp`
+**Difficulty:** Medium
+**Dimension:** N=2²² (4M elements)
+
+Showcase file for five OMP constructs. Two working demos are provided (`reduction`, `master`). Two TODOs to implement:
+
+1. `find_max_parallel` — use `private(local_max)` + `#pragma omp critical` for global max
+2. `histogram_atomic` — use `#pragma omp atomic` for race-free histogram updates
+
+**What to implement:** `find_max_parallel` and `histogram_atomic`.
+**Key concept:** `private`, `critical`, `atomic`, `master`, `omp_get_num_procs`.
+
+**Tests:**
+```
+TEST01a: find_max correctness (private+critical)
+TEST01b: histogram correctness (atomic)
+TEST02: AVG Xms (serial hist) vs AVG Yms (atomic hist, 10 runs)
+```
+
+---
+
 ## Summary
 
 | ID | File | Section | Topic | Difficulty |
@@ -370,3 +477,8 @@ TEST02: AVG Xms (sequential) vs AVG Yms (streamed, 10 runs)
 | P14 | `14_omp_conv.cpp` | B | OpenMP direct convolution | Medium |
 | P15 | `15_cuda_unified.cu` | B | CUDA unified memory | Medium |
 | P16 | `16_cuda_stream.cu` | B | CUDA stream pipeline | Hard |
+| P17 | `17_im2col_gemm.cpp` | D | im2col + GEMM convolution | Hard |
+| P18 | `18_neon_matmul.cpp` | D | NEON matrix multiply | Hard |
+| P19 | `19_kij_matmul.cpp` | D | kij loop order + std::thread | Medium |
+| P20 | `20_dwconv.cpp` | D | Depthwise convolution | Medium |
+| P21 | `21_omp_misc.cpp` | D | OpenMP misc constructs | Medium |
