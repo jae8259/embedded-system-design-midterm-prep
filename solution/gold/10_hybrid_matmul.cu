@@ -101,7 +101,7 @@ int main() {
     t1 = std::chrono::high_resolution_clock::now();
     double ms_gpu = std::chrono::duration<double, std::milli>(t1 - t0).count() / RUNS;
 
-    printf("TEST02:\nAVG %.2fms (cpu omp+tiled) vs AVG %.2fms (gpu tiled)\n", ms_cpu, ms_gpu);
+    printf("TEST02:\nAVG %.2fms (cpu omp+tiled) vs AVG %.2fms (gpu tiled incl. transfers)\n", ms_cpu, ms_gpu);
 
     delete[] A; delete[] B; delete[] ref; delete[] out_cpu; delete[] out_gpu;
     return 0;

@@ -40,13 +40,9 @@ __global__ void add_block_offsets(float* out, const float* offsets, int n) {
     // TODO
 }
 
-void prefix_sum(const float* d_in, float* d_out, int n) {
+void prefix_sum(const float* d_in, float* d_out, float* d_block_sums, int num_blocks, int n) {
     int elems_per_block = BLOCK * 2;
-    int num_blocks = (n + elems_per_block - 1) / elems_per_block;
     size_t smem = elems_per_block * sizeof(float);
-
-    float* d_block_sums;
-    cudaMalloc(&d_block_sums, num_blocks * sizeof(float));
 
     scan_blocks<<<num_blocks, BLOCK, smem>>>(d_in, d_out, d_block_sums, n);
 
@@ -63,7 +59,6 @@ void prefix_sum(const float* d_in, float* d_out, int n) {
 
     add_block_offsets<<<num_blocks, elems_per_block>>>(d_out, d_block_sums, n);
 
-    cudaFree(d_block_sums);
     delete[] h_sums;
 }
 
@@ -79,7 +74,12 @@ int main() {
     cudaMalloc(&d_out, N * sizeof(float));
     cudaMemcpy(d_in, h_in, N * sizeof(float), cudaMemcpyHostToDevice);
 
-    prefix_sum(d_in, d_out, N);
+    int elems_per_block = BLOCK * 2;
+    int num_blocks = (N + elems_per_block - 1) / elems_per_block;
+    float* d_block_sums_buf;
+    cudaMalloc(&d_block_sums_buf, num_blocks * sizeof(float));
+
+    prefix_sum(d_in, d_out, d_block_sums_buf, num_blocks, N);
     cudaDeviceSynchronize();
     cudaMemcpy(h_out, d_out, N * sizeof(float), cudaMemcpyDeviceToHost);
 
@@ -98,13 +98,13 @@ int main() {
     cudaEvent_t ev_s, ev_e;
     cudaEventCreate(&ev_s); cudaEventCreate(&ev_e);
     cudaEventRecord(ev_s);
-    for (int i = 0; i < RUNS; i++) prefix_sum(d_in, d_out, N);
+    for (int i = 0; i < RUNS; i++) prefix_sum(d_in, d_out, d_block_sums_buf, num_blocks, N);
     cudaEventRecord(ev_e); cudaEventSynchronize(ev_e);
     float ms_gpu; cudaEventElapsedTime(&ms_gpu, ev_s, ev_e); ms_gpu /= RUNS;
 
     printf("TEST02:\nAVG %.2fms (cpu serial) vs AVG %.2fms (cuda scan)\n", ms_cpu, ms_gpu);
 
-    cudaFree(d_in); cudaFree(d_out);
+    cudaFree(d_in); cudaFree(d_out); cudaFree(d_block_sums_buf);
     delete[] h_in; delete[] h_ref; delete[] h_out;
     return 0;
 }
