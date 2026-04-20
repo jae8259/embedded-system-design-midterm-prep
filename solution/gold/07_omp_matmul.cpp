@@ -33,6 +33,26 @@ static void matmul_omp(const float* A, const float* B, float* C, int m, int k, i
                             sum += A[ii * k + ll] * B[ll * n + jj];
                         C[ii * n + jj] += sum;
                     }
+    // #pragma omp parallel for collapse(2) schedule(static)
+    // for(int i=0; i < M; i+=TILE){
+    //     for(int k=0; k < K; k+= TILE){
+    //         for(int j=0; j < N; j+=TILE){
+
+    //             int i_end = i+TILE < M ? i+TILE : M;
+    //             int j_end = j+TILE < N ? j+TILE : N;
+    //             int k_end = k+TILE < K ? k+TILE : K;
+
+    //             for(int ii=i; ii < i_end; ii++){
+    //                 for(int kk=k; kk < k_end; kk++){
+    //                     for(int jj=j; jj < j_end; jj++){
+    //                         C[ii * N + jj] += A[ii * K + kk] * B[kk * N + jj];
+    //                     }
+    //                 }
+    //             }
+    //         }
+
+    //     }
+    // }
 }
 
 int main() {
