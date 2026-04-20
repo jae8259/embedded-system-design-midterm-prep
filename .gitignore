@@ -82,6 +82,15 @@ Testing/
 
 # Logs
 logs/
+logs/*
+!logs/.gitkeep
+!logs/.gitignore
 
 # Builds
 bin/
+# Mac
+.DS_Store
+**/.DS_Store
+
+# Misc
+!Makefile
