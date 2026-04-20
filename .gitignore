@@ -81,4 +81,12 @@ Testing/
 .omx/
 
 # Logs
-logs/
+logs/*
+!logs/.gitkeep
+!logs/.gitignore
+
+!Makefile
+
+# Mac
+.DS_Store
+**/.DS_Store
