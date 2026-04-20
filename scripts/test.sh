@@ -8,8 +8,27 @@
 set -e
 PROBLEM=${1#--}   # strip leading -- if present
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MIDTERM_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+find_midterm_dir() {
+    local base="${SLURM_SUBMIT_DIR:-$PWD}"
+    local candidates=(
+        "$base/midterm"
+        "$base"
+    )
+    for d in "${candidates[@]}"; do
+        if [[ -d "$d/solution" && -d "$d/problem" && -d "$d/scripts" ]]; then
+            echo "$d"
+            return 0
+        fi
+    done
+    return 1
+}
+
+MIDTERM_DIR="$(find_midterm_dir || true)"
+if [[ -z "$MIDTERM_DIR" ]]; then
+    echo "ERROR: couldn't locate midterm dir from SLURM_SUBMIT_DIR='$SLURM_SUBMIT_DIR' PWD='$PWD'"
+    echo "Expected either ./midterm/{scripts,problem,solution} or ./{scripts,problem,solution}."
+    exit 2
+fi
 
 MINE_DIR="${MINE_DIR:-$MIDTERM_DIR/solution/mine}"
 LOG_DIR="${LOG_DIR:-$MIDTERM_DIR/logs}"
