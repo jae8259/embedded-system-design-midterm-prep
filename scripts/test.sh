@@ -1,8 +1,9 @@
 #!/bin/bash
 #SBATCH -J midterm
 #SBATCH -o logs/test.%j.log
-#SBATCH --cpus-per-task=8
-#SBATCH --gres=gpu:1
+#SBATCH -e logs/test.%j.err
+#SBATCH --cpus-per-task=6
+#SBATCH --time=00:05:00
 
 set -e
 PROBLEM=${1#--}   # strip leading -- if present
