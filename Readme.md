@@ -1,4 +1,5 @@
 # Midterm Preparation for the Embedded System Designs
+
 The goal is to prepare live coding midterm for the Embedded System Designe. This course aims to optimize applications in the Jetson Orin Nano board.
 
 First, read through each slide and then make problems. Skip slides that are hard to build example. For example, we learned flash attnetion, but it's something hard for you to really make examples.
@@ -36,3 +37,6 @@ Every problem should have a name of `<ID>_<Description>.<cpp|cu>`.
 |- test // Make tests here.
 |- scritps
 ```
+
+# Usage
+Copy a problem from the `problem` fodler to `solution/mine`. Run it with `sbatch scripts/test.sh`.
