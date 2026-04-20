@@ -25,8 +25,11 @@ __global__ void reduce_warp(const float* in, float* out, int n) {
     float sum = 0.f;
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     int stride = blockDim.x * gridDim.x;
+    // Each thread adds up every gridDim elements; 256 x 256 list to reduce
     for (int i = idx; i < n; i += stride) sum += in[i];
+    // Each warp reduces within them; (256 x 256) / 32 list to reduce
     sum = warp_reduce(sum);
+    // Atomically add each warp result to the sum
     if (threadIdx.x % 32 == 0) atomicAdd(out, sum);
 }
 
