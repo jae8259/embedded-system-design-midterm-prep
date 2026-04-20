@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -J midterm
-#SBATCH -o logs/test.%j.log
-#SBATCH -e logs/test.%j.err
+#SBATCH -o slurm-%x.%j.out
+#SBATCH -e slurm-%x.%j.err
 #SBATCH --cpus-per-task=6
 #SBATCH --time=00:05:00
 
@@ -12,6 +12,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MIDTERM_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 MINE_DIR="${MINE_DIR:-$MIDTERM_DIR/solution/mine}"
+LOG_DIR="${LOG_DIR:-$MIDTERM_DIR/logs}"
+
+mkdir -p "$LOG_DIR"
+if [[ -n "${SLURM_JOB_ID:-}" ]]; then
+    LOG_FILE="$LOG_DIR/test.${SLURM_JOB_ID}.log"
+else
+    LOG_FILE="$LOG_DIR/test.local.$(date +%s).log"
+fi
+exec > >(tee "$LOG_FILE") 2>&1
 
 is_neon_source() {
     local f="$1"
