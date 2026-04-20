@@ -1,15 +1,18 @@
 {
   "configurations": [
     {
-      "name": "Linux-ARM64",
+      "name": "Linux-ARM64-CUDA",
       "includePath": [
         "${workspaceFolder}/**",
         "/usr/lib/gcc/aarch64-linux-gnu/*/include",
+        "/usr/local/cuda/include",
+        "/usr/local/cuda/targets/aarch64-linux/include",
         "/usr/include"
       ],
       "defines": [
         "__ARM_NEON",
-        "__ARM_ARCH_8A__"
+        "__ARM_ARCH_8A__",
+        "__CUDACC__"
       ],
       "compilerPath": "/usr/bin/aarch64-linux-gnu-gcc",
       "cStandard": "c17",
