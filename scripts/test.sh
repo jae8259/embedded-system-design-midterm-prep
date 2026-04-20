@@ -16,7 +16,7 @@ find_midterm_dir() {
     "$base"
   )
   for d in "${candidates[@]}"; do
-    if [[ -f "$d/Makefile" && -d "$d/solution" && -d "$d/problem" && -d "$d/scripts" ]]; then
+    if [[ -d "$d/solution" && -d "$d/problem" && -d "$d/scripts" ]]; then
       echo "$d"
       return 0
     fi
@@ -45,9 +45,23 @@ run_problem() {
   local num="$1"
   local bin="$MIDTERM_DIR/bin/p${num}"
 
-  if ! make -C "$MIDTERM_DIR" "p${num}"; then
+  if [[ -f "$MIDTERM_DIR/Makefile" ]]; then
+    if ! make -C "$MIDTERM_DIR" "p${num}"; then
+      echo "=== Problem $num ==="
+      echo "BUILD FAIL"
+      echo ""
+      return 1
+    fi
+  elif [[ -x "$MIDTERM_DIR/scripts/build_one.sh" ]]; then
+    if ! "$MIDTERM_DIR/scripts/build_one.sh" "$num" "$bin"; then
+      echo "=== Problem $num ==="
+      echo "BUILD FAIL"
+      echo ""
+      return 1
+    fi
+  else
     echo "=== Problem $num ==="
-    echo "BUILD FAIL"
+    echo "BUILD FAIL: missing $MIDTERM_DIR/Makefile (and no $MIDTERM_DIR/scripts/build_one.sh fallback)"
     echo ""
     return 1
   fi
