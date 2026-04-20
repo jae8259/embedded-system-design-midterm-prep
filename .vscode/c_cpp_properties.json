@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "name": "Linux-ARM64",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/usr/lib/gcc/aarch64-linux-gnu/*/include",
+        "/usr/include"
+      ],
+      "defines": [
+        "__ARM_NEON",
+        "__ARM_ARCH_8A__"
+      ],
+      "compilerPath": "/usr/bin/aarch64-linux-gnu-gcc",
+      "cStandard": "c17",
+      "cppStandard": "c++17",
+      "intelliSenseMode": "linux-gcc-arm64"
+    }
+  ],
+  "version": 4
+}
