@@ -82,3 +82,6 @@ Testing/
 
 # Logs
 logs/
+
+# Builds
+bin/
