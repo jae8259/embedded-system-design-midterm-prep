@@ -6,7 +6,8 @@
 #SBATCH --time=00:05:00
 
 set -euo pipefail
-PROBLEM=${1#--} # strip leading -- if present
+PROBLEM="${1:-}"
+PROBLEM="${PROBLEM#--}" # strip leading -- if present
 
 find_midterm_dir() {
   local base="${SLURM_SUBMIT_DIR:-$PWD}"
