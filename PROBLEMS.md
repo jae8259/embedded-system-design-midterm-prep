@@ -1,7 +1,7 @@
 # Midterm Problem Set
 
 Target board: Jetson Orin Nano (Ampere SM 8.2, 1024 CUDA cores)
-Execution: `sbatch scripts/test.sh [--<problem-id>]`
+Execution: `sbatch scripts/test.sh [--gold] [<problem-id>]`
 Naming: `<ID>_<Description>.<cpp|cu>`
 
 ---
@@ -457,6 +457,60 @@ TEST02: AVG Xms (serial hist) vs AVG Yms (atomic hist, 10 runs)
 
 ---
 
+### P22 — CUDA Parallel Reduction
+
+**File:** `22_reduce.cu`
+**Difficulty:** Hard
+**Dimension:** N = 2²⁴ (16 M) floats
+
+Implement a two-pass GPU reduction using shared memory tree + warp shuffle.
+The serial CPU sum and `warp_reduce_sum` demo (using `__shfl_down_sync`) are provided.
+
+Two TODOs:
+1. `reduce_kernel` — grid-stride load → shared-mem tree reduction (s > 32) → warp unroll with `warp_reduce_sum`, write `out[blockIdx.x]`
+2. `reduce()` host wrapper — launch first pass (up to `kNumBlocks` blocks), then a single-block second pass if needed to reduce partial sums to `g_odata[0]`
+
+**What to implement:** `reduce_kernel` and `reduce()`.
+**Key concept:** shared memory reduction, warp shuffle (`__shfl_down_sync`), two-pass grid reduction.
+
+**Tests:**
+```
+TEST01: serial=16777216 cuda=16777216 SUCCESS
+TEST02: AVG Xms (serial) vs AVG Yms (cuda)
+```
+
+---
+
+### P23 — CUDA Register-Tiled Matmul
+
+**File:** `23_cuda_matmul.cu`
+**Difficulty:** Hard
+**Dimension:** M=257, K=255, N=259
+
+Implement a CUDA GEMM kernel where each thread block computes a `64x64` output tile and each thread accumulates a `4x4` register tile.
+
+Use:
+- `BLOCK_M=64`, `BLOCK_N=64`, `BLOCK_K=16`
+- `THREAD_M=4`, `THREAD_N=4`
+- shared memory tiles `As[BLOCK_M][BLOCK_K]` and `Bs[BLOCK_K][BLOCK_N]`
+
+Two TODOs:
+1. `matmul_kernel` — cooperatively load A/B tiles into shared memory with bounds checks, then accumulate a `THREAD_M x THREAD_N` register tile.
+2. `matmul_cuda` — launch the kernel with:
+   - `dim3 block(THREADS_X, THREADS_Y)`
+   - `dim3 grid((N + BLOCK_N - 1) / BLOCK_N, (M + BLOCK_M - 1) / BLOCK_M)`
+
+**What to implement:** `matmul_kernel` and `matmul_cuda`.
+**Key concept:** CUDA tiling, shared memory staging, register blocking, rectangular edge handling.
+
+**Tests:**
+```
+TEST01: CUDA blocked matmul correctness
+TEST02: AVG Xms (serial) vs AVG Yms (cuda blocked incl. transfers)
+```
+
+---
+
 ## Summary
 
 | ID | File | Section | Topic | Difficulty |
@@ -482,3 +536,5 @@ TEST02: AVG Xms (serial hist) vs AVG Yms (atomic hist, 10 runs)
 | P19 | `19_kij_matmul.cpp` | D | kij loop order + std::thread | Medium |
 | P20 | `20_dwconv.cpp` | D | Depthwise convolution | Medium |
 | P21 | `21_omp_misc.cpp` | D | OpenMP misc constructs | Medium |
+| P22 | `22_reduce.cu` | D | CUDA parallel reduction | Hard |
+| P23 | `23_cuda_matmul.cu` | D | CUDA register-tiled matmul | Hard |
